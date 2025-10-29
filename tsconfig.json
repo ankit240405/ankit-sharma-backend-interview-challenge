@@ -13,7 +13,7 @@
     "moduleResolution": "node",
     "allowJs": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+"noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
