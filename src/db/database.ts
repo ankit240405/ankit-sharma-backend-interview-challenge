@@ -1,6 +1,4 @@
 import sqlite3 from 'sqlite3';
-import { promisify } from 'util';
-import { Task, SyncQueueItem } from '../types';
 
 const sqlite = sqlite3.verbose();
 
@@ -21,10 +19,10 @@ export class Database {
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
-        completed INTEGER DEFAULT 0,
+        completed INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        is_deleted INTEGER DEFAULT 0,
+        is_deleted INTEGER NOT NULL DEFAULT 0,
         sync_status TEXT DEFAULT 'pending',
         server_id TEXT,
         last_synced_at DATETIME
@@ -38,7 +36,7 @@ export class Database {
         operation TEXT NOT NULL,
         data TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        retry_count INTEGER DEFAULT 0,
+        retry_count INTEGER NOT NULL DEFAULT 0,
         error_message TEXT,
         FOREIGN KEY (task_id) REFERENCES tasks(id)
       )
@@ -48,7 +46,6 @@ export class Database {
     await this.run(createSyncQueueTable);
   }
 
-  // Helper methods
   run(sql: string, params: any[] = []): Promise<void> {
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, (err) => {

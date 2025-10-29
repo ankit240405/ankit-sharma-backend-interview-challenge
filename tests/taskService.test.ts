@@ -109,7 +109,7 @@ describe('TaskService', () => {
 
   describe('getTasksNeedingSync', () => {
     it('should return tasks with pending or error sync status', async () => {
-      // Create tasks with different sync statuses
+      // Create tasks with different sync statusess
       const task1 = await taskService.createTask({ title: 'Pending Task' });
       const task2 = await taskService.createTask({ title: 'Another Pending' });
       

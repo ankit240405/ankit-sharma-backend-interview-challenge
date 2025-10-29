@@ -1,98 +1,111 @@
-# Backend Interview Challenge - Task Sync API
+# 🧠 Task Synchronization System
 
-This is a backend developer interview challenge focused on building a sync-enabled task management API. The challenge evaluates understanding of REST APIs, data synchronization, offline-first architecture, and conflict resolution.
+## 1️⃣ Approach to the Synchronization Problem
 
-## 📚 Documentation Overview
+This project implements an **offline-first task management system** designed to ensure seamless operation regardless of network connectivity. The core objective was to maintain data consistency between the local database and the remote server through efficient synchronization.
 
-Please read these documents in order:
+### Key Design Decisions
 
-1. **[📋 Submission Instructions](./docs/SUBMISSION_INSTRUCTIONS.md)** - How to submit your solution (MUST READ)
-2. **[📝 Requirements](./docs/REQUIREMENTS.md)** - Detailed challenge requirements and implementation tasks
-3. **[🔌 API Specification](./docs/API_SPEC.md)** - Complete API documentation with examples
-4. **[🤖 AI Usage Guidelines](./docs/AI_GUIDELINES.md)** - Guidelines for using AI tools during the challenge
+- **Offline-first architecture:** All task operations (create, update, delete) are performed locally and persisted in a SQLite database, ensuring uninterrupted functionality even when offline.  
+- **Sync queue mechanism:** Each local operation is recorded in a `sync_queue` table along with its type (`create`, `update`, or `delete`), payload, and retry count.  
+- **Batch synchronization:** On reconnection, queued operations are sent to the server in controlled batches (default: 50 items) via a dedicated `SyncService`.  
+- **Conflict resolution:** A **Last-Write-Wins** policy is used, where the record with the latest `updated_at` timestamp is considered the source of truth.  
+- **Retry and error handling:** Each failed operation is retried up to three times before being flagged for review, ensuring robustness without blocking other operations.  
+- **Soft deletion:** Instead of permanently removing tasks, deletions are handled through an `is_deleted` flag to preserve historical integrity during sync.
 
-**⚠️ Important**: DO NOT create pull requests against this repository. All submissions must be through private forks.
+---
 
-## Challenge Overview
+## 2️⃣ Assumptions
 
-Candidates are expected to implement a backend API that:
-- Manages tasks (CRUD operations)
-- Supports offline functionality with a sync queue
-- Handles conflict resolution when syncing
-- Provides robust error handling
+- The system supports a **single-user workflow**; authentication was not required for this exercise.  
+- The **server generates and assigns `server_id`** upon the first successful synchronization.  
+- **Timestamps** are stored and compared in **ISO 8601 format** for consistency across systems.  
+- **Network interruptions** do not affect local task operations; all changes are queued until connectivity is restored.  
+- Synchronization can be triggered manually through `/api/sync` or automatically when the client detects an online status.  
+- The default batch size is **50**, configurable via the `BATCH_SIZE` environment variable.
 
-## Project Structure
+---
 
-```
-backend-interview-challenge/
-├── src/
-│   ├── db/             # Database setup and configuration
-│   ├── models/         # Data models (if needed)
-│   ├── services/       # Business logic (TO BE IMPLEMENTED)
-│   ├── routes/         # API endpoints (TO BE IMPLEMENTED)
-│   ├── middleware/     # Express middleware
-│   ├── types/          # TypeScript interfaces
-│   └── server.ts       # Express server setup
-├── tests/              # Test files
-├── docs/               # Documentation
-└── package.json        # Dependencies and scripts
-```
+## 3️⃣ Running and Testing the Solution
 
-## Getting Started
+### 🧩 Prerequisites
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+- Node.js ≥ 18  
+- npm ≥ 9  
 
-### Setup
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Copy environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+### ⚙️ Setup Instructions
 
-### Available Scripts
-
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build TypeScript to JavaScript
-- `npm run start` - Start production server
-- `npm test` - Run tests
-- `npm run test:ui` - Run tests with UI
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Check TypeScript types
-
-## Your Task
-
-### Key Implementation Files
-
-You'll need to implement the following services and routes:
-
-- `src/services/taskService.ts` - Task CRUD operations
-- `src/services/syncService.ts` - Sync logic and conflict resolution  
-- `src/routes/tasks.ts` - REST API endpoints
-- `src/routes/sync.ts` - Sync-related endpoints
-
-### Before Submission
-
-Ensure all of these pass:
 ```bash
-npm test          # All tests must pass
-npm run lint      # No linting errors
-npm run typecheck # No TypeScript errors
+git clone <repository-url>
+cd task-sync-api
+npm install
 ```
 
-### Time Expectation
+Create a `.env` file in the project root:
 
-This challenge is designed to take 2-3 hours to complete.
+```bash
+API_BASE_URL=https://your-server-endpoint.com
+BATCH_SIZE=50
+```
 
-## License
+### ▶️ Running the Server
 
-This project is for interview purposes only.
+```bash
+npm run dev
+```
+
+The application will start on:  
+**http://localhost:3000**
+
+### 🧪 Testing and Linting
+
+```bash
+npm test          # Execute test suite
+npm run lint      # Perform ESLint checks
+npm run typecheck # Validate TypeScript types
+```
+
+All commands should complete successfully with **zero errors or warnings** ✅  
+
+---
+
+## 4️⃣ Linting Configuration
+
+The following ESLint configuration (`.eslintrc.json`) was used to maintain clean and consistent code quality:
+
+```json
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "no-console": "off"
+  },
+  "ignorePatterns": ["node_modules/", "dist/", "build/"]
+}
+```
+
+---
+
+## ✅ Verification Checklist
+
+- All tests pass (`npm test`)  
+- No ESLint issues (`npm run lint`)  
+- No TypeScript type errors (`npm run typecheck`)  
+- Offline operations function correctly and synchronize successfully when online  
+
+---
