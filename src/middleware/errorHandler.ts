@@ -8,7 +8,7 @@ export function errorHandler(
   err: AppError,
   req: Request,
   res: Response,
-  next: NextFunction   // ✅ Must include this!
+  next: NextFunction   
 ) {
   console.error('Error:', err);
 
